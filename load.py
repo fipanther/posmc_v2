@@ -52,22 +52,22 @@ arr_He_cx = np.loadtxt(str(c_dir)+"/he_process/hece_xsec.txt",skiprows=0)   #Ove
 #   Load in the radiative recombination cross-section (Gould1989)
 arr_rad = np.loadtxt(str(c_dir)+"/e_process/radrecomb.txt", skiprows=0)
 
-#def d_xsec(energy):
-#    gamma = 1+((energy)/(mp))
-#    beta = np.sqrt(1-(1/(1+((energy)/mp)))**2)
-#    if energy<75*kev:
-#        s = ((np.pi*r0**2)/beta)*(2*np.pi*0.0072/beta)/(1-np.exp(-2*np.pi*0.0072/beta))
-#    else:
-#        s = (np.pi*r0**2/(4*gamma**2*beta))*(2*(beta**2-2)+((3-beta**4)/beta)*np.log((1+beta)/(1-beta)))
-#    
-#    return s
-#print(len(arr_rad))
-#    
-#d_free = []
-#en = np.linspace(1,5000, 1000)
-#for i in en:
-#    aa = d_xsec(i)*10**5
-#    d_free.append(aa)
+def d_xsec(energy):
+    gamma = 1+((energy)/(mp))
+    beta = np.sqrt(1-(1/(1+((energy)/mp)))**2)
+    if energy<75*kev:
+        s = ((np.pi*r0**2)/beta)*(2*np.pi*0.0072/beta)/(1-np.exp(-2*np.pi*0.0072/beta))
+    else:
+        s = (np.pi*r0**2/(4*gamma**2*beta))*(2*(beta**2-2)+((3-beta**4)/beta)*np.log((1+beta)/(1-beta)))
+    
+    return s
+
+    
+d_free = []
+en = np.linspace(1,5000, 1000)
+for i in en:
+    aa = d_xsec(i)*10**5
+    d_free.append(aa)
 
 
 #   Move these into a separate file - they're fairly redundant
@@ -75,43 +75,46 @@ arr_rad = np.loadtxt(str(c_dir)+"/e_process/radrecomb.txt", skiprows=0)
 #   if you would like to plot the raw cross-sections for these processes, please uncomment the following
 #
 
-##Helium cross-sections - Log-Log plot
+###Helium cross-sections - Log-Log plot
+##
+#plt.figure()
+#plt.plot(np.log10(arr_He_ion[:,0]),np.log10(arr_He_ion[:,1]), 'r:', lw = 2, label = '$\mathrm{He\,ionization}$')
+#plt.plot(np.log10(arr_He_ex[:,0]), np.log10(arr_He_ex[:,1]), 'r--', lw = 2,  label = '$\mathrm{He\,excitation}$')
+##plt.plot(np.log10(arr_He_cx[:,0]), np.log10(arr_He_cx[:,1]), 'r-', label = '$\mathrm{He\,charge\,exchange}$')
+#plt.title("$\mathrm{Atomic\,cross-sections}$")
+#plt.xlabel(r"$\log_{10}(E/\mathrm{eV})$", fontsize = '14')
+#plt.ylabel(r"$\log_{10}(\sigma/\mathrm{cm}^2)$", fontsize = '14')
+##plt.legend(loc = 'best', fontsize = '12')
+##plt.ylim([-17.2,-15.5])
+##plt.xlim([0.9,2.8])
+##plt.savefig('Hexsec')
+##
+###Hydrogen cross-sections - Log-Log plot
+##
+##
+##plt.figure()
+#plt.plot(np.log10(arr_H_ion[:,0]),np.log10(arr_H_ion[:,1]), 'b:' , lw = 2,  label = '$\mathrm{H\,ionization}$')
+#plt.plot(np.log10(arr_H_ex[:,0]), np.log10(arr_H_ex[:,1]), 'b--', lw = 2, label = '$\mathrm{H\,excitation}$')
+###plt.plot(np.log10(arr_H_cx[:,0]), np.log10(arr_H_cx[:,1]), 'b-', label = '$\mathrm{H\,charge\,exchange}$')
+##plt.plot(np.log10(en), np.log10(d_free), 'c-', label = '$\mathrm{Direct\,annihilation\,(x10}^5)$')
+##plt.title("$\mathrm{Hydrogen\,cross-sections}$")
+##plt.xlabel(r"$\log_{10}(E/\mathrm{eV})$")
+##plt.ylabel(r"$\log_{10}(\sigma/\mathrm{cm}^2)$")
+#plt.legend(loc = 'best', fontsize = '12')
+#plt.ylim([-17.2,-15.5])
+#plt.xlim([0.9,2.8])
+#plt.savefig('Hxsec')
 #
-#plt.figure
-#plt.plot(np.log10(arr_He_ion[:,0]),np.log10(arr_He_ion[:,1]), 'r:', label = '$\mathrm{He\,Ionization}$')
-#plt.plot(np.log10(arr_He_ex[:,0]), np.log10(arr_He_ex[:,1]), 'r--', label = '$\mathrm{He\,exitation}$')
-#plt.plot(np.log10(arr_He_cx[:,0]), np.log10(arr_He_cx[:,1]), 'r-', label = '$\mathrm{He\,charge\,exchange}$')
-##plt.title("Helium-positron process cross-sections")
-#plt.xlabel("$\mathrm{log(E/eV)}$")
-#plt.ylabel("$\mathrm{log{(\sigma/cm^2)}}$")
-#plt.legend(loc = 'best', fontsize = '10')
-#plt.ylim([-19,-15])
-#
-##Hydrogen cross-sections - Log-Log plot
 #
 #
-#plt.plot(np.log10(arr_H_ion[:,0]),np.log10(arr_H_ion[:,1]), 'b:' , label = '$\mathrm{H\,Ionization}$')
-#plt.plot(np.log10(arr_H_ex[:,0]), np.log10(arr_H_ex[:,1]), 'b--', label = '$\mathrm{H\,exitation}$')
-#plt.plot(np.log10(arr_H_cx[:,0]), np.log10(arr_H_cx[:,1]), 'b-', label = '$\mathrm{H\,charge\,exchange}$')
-#plt.plot(np.log10(en), np.log10(d_free), 'c-', label = '$\mathrm{Direct\,annihilation\,(x10}^5)$')
-#plt.title("$\mathrm{Positron\,cross-sections}$")
-##plt.xlabel("log(E/eV)")
-##plt.ylabel("log($\sigma$/$\mathrm{cm}^2$)")
-#plt.legend(loc = 'best', fontsize = '10')
-#plt.ylim([-19,-15])
-#plt.xlim([0,3.5])
-#plt.show()
-
-
-
-#   Load the rates at thermalization as a function of temperature
-
-arr_df = np.loadtxt(str(c_dir)+"/rates_data/rate_dfree.txt",skiprows=0) #Crannell et al
-arr_hcx = np.loadtxt(str(c_dir)+"/rates_data/rate_hcx.txt",skiprows=0)  #Computed from x-sec above
-arr_hdb = np.loadtxt(str(c_dir)+"/rates_data/rate_hdab.txt",skiprows=0) #Murphy+2005
-arr_hedb = np.loadtxt(str(c_dir)+"/rates_data/rate_hedab.txt",skiprows=0)   #Murphy+2005
-arr_rr = np.loadtxt(str(c_dir)+"/rates_data/rate_rr.txt",skiprows=0)    #Ralph Sutherland, private communication
-arr_hecx = np.loadtxt(str(c_dir)+"/rates_data/rate_hece.txt",skiprows=0)    #Murphy+2005
+##   Load the rates at thermalization as a function of temperature
+#
+#arr_df = np.loadtxt(str(c_dir)+"/rates_data/rate_dfree.txt",skiprows=0) #Crannell et al
+#arr_hcx = np.loadtxt(str(c_dir)+"/rates_data/rate_hcx.txt",skiprows=0)  #Computed from x-sec above
+#arr_hdb = np.loadtxt(str(c_dir)+"/rates_data/rate_hdab.txt",skiprows=0) #Murphy+2005
+#arr_hedb = np.loadtxt(str(c_dir)+"/rates_data/rate_hedab.txt",skiprows=0)   #Murphy+2005
+#arr_rr = np.loadtxt(str(c_dir)+"/rates_data/rate_rr.txt",skiprows=0)    #Ralph Sutherland, private communication
+#arr_hecx = np.loadtxt(str(c_dir)+"/rates_data/rate_hece.txt",skiprows=0)    #Murphy+2005
 
 
 
@@ -205,6 +208,23 @@ def dE_ic(energy, urad):
     Inverse Compton energy losses in radiation field with density urad - use the CMB field as a default. Blumenthal+Gould 1970
     """
     return (2.6E-14)*urad*(usr.rel_gam(energy, mp)**2)*(usr.rel_bet(energy, mp)**2)
+
+def de_ad(energy, time, r_0, rho_now, rho_prev, vel, mass = 511E3):
+    """
+        Calculates the adiabatic energy loss rate as a function of time
+        """
+    amu = 1.67E-24
+    msun = 1.989E33
+    yrs = 24*3600*365.25
+    kpc = 3.086E21
+    
+    v = vel*100*1000
+    g = usr.adiabatic_gamma(energy, mass)
+    r = r_0*kpc
+    
+    de_ad_out = (((2**(2-g))*2*v*rho_now*energy*(g-1))/(rho_prev*(r+(v*time))))*((2*rho_now/rho_prev)**(g-2))
+    
+    return de_ad_out
 
 
 

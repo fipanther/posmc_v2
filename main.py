@@ -93,7 +93,7 @@ jobs   = []
 for j in hy:
     for i in range(n_part):
         #   Fire jobs out of the job cannon
-        job = pool.apply_async(ds.do_science, (5E10, i, qu, j))
+        job = pool.apply_async(ds.do_science, (1E6, i, qu, j))
         jobs.append(job)
 
 #   get the results from the pile of jobs

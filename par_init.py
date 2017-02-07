@@ -27,7 +27,7 @@ import load as ld
 #   Import the external simulation information
 
 s_yr = 3.15576*10**7
-timing_ext = np.linspace(0, 1E9*s_yr, 1E3)
+timing_ext = np.linspace(0, 1E6*s_yr, 1E3)
 #arr_nesim = [1]*100000
 #arr_nHsim = [1000]*100000
 arr_nHesim = [0]*100000
@@ -36,14 +36,18 @@ arr_xHesim = [0]*100000
 arr_xHe2sim = [0]*100000
 arr_temperaturesim = [8000]*100000
 arr_Bsim = [50]*100000
+arr_rhosim = [1E-25]*100000
+
+model_parameters = [0.100, 500]
+
 
 
 #   Initialize the simulation
-def initialize_MCmp(paramset, arrays0, arrays1, arrays2, arrays3, arrays4, arrays5, arrays6, arrays7, arraystime):
+def initialize_MCmp(paramset, arrays0, arrays1, arrays2, arrays3, arrays4, arrays5, arrays6, arrays7, arraystime, arrays8):
     """ Initialize the data arrays for each MC particle
         Parameters:
-            paramset: tuple length 8 containing the first value in the arrays from the external simulation
-                      [E, H, He, xH, xHe, xHe2, T, B]
+            paramset: tuple length 9 containing the first value in the arrays from the external simulation
+                      [E, H, He, xH, xHe, xHe2, T, B, rho]
     """
     if not arrays0:
         arrays0.append(paramset[0])
@@ -63,6 +67,8 @@ def initialize_MCmp(paramset, arrays0, arrays1, arrays2, arrays3, arrays4, array
         arrays7.append(paramset[7])
     if not arraystime:
         arraystime.append(0)
+    if not arrays8:
+        arrays8.append(paramset[8])
     return
 
 def dumparr(arrays0, arrays1, arrays2, arrays3, arrays4, arrays5, arrays6, arrays7, arrays8, arraystime, timeidx):
@@ -81,8 +87,8 @@ def update_epacket(current_energy, energy_lost, arrname):
 def update_timing(dt, tnow, arrname):
     return arrname.append(tnow+dt)
 
-#   Update the ISM parameters
-def update_params(dt, idx_now, idx_next, arrays1, arrays2, arrays3, arrays4, arrays5, arrays6, arrays7, time_sim, time_ext, sim_nH):
+#   Update the ISM parameters add in rho
+def update_params(dt, idx_now, idx_next, arrays1, arrays2, arrays3, arrays4, arrays5, arrays6, arrays7, arrays8, time_sim, time_ext, sim_nH):
     """
     Updates the ISM parameters after a timestep.
     """
@@ -103,6 +109,7 @@ def update_params(dt, idx_now, idx_next, arrays1, arrays2, arrays3, arrays4, arr
         xHe2_next = arrays5[idx_now]
         T_next = arrays6[idx_now]
         B_next = arrays7[idx_now]
+        rho_next = arrays8[idx_now]
     elif t_up > t_mid:
         """
         If the updated time is closer to the end of the external timestep than the beginning, use the ISM parameters from the beginning of the next external timestep
@@ -114,6 +121,7 @@ def update_params(dt, idx_now, idx_next, arrays1, arrays2, arrays3, arrays4, arr
         xHe2_next = arr_xHe2sim[idx_next]
         T_next = arr_temperaturesim[idx_next]
         B_next = arr_Bsim[idx_next]
+        rho_next = arr_rhosim[idx_next]
     elif t_up == t_mid:
         """
         If the updated time is right in the middle, use the ISM parameters from the beginning of the next external timestep. This is a separate elif statememt because for some reason having it in the same elif statement as either of the others (>= or <=) seems to break the simulation. Probably some Python thing?
@@ -125,12 +133,13 @@ def update_params(dt, idx_now, idx_next, arrays1, arrays2, arrays3, arrays4, arr
         xHe2_next = arr_xHe2sim[idx_next]
         T_next = arr_temperaturesim[idx_next]
         B_next = arr_Bsim[idx_next]
+        rho_next = arr_rhosim[idx_now]
 
-    return arrays1.append(float(nH_next)), arrays2.append(float(nHe_next)), arrays3.append(float(xH_next)), arrays4.append(float(xHe_next)), arrays5.append(float(xHe2_next)), arrays6.append(float(T_next)), arrays7.append(float(B_next))
+    return arrays1.append(float(nH_next)), arrays2.append(float(nHe_next)), arrays3.append(float(xH_next)), arrays4.append(float(xHe_next)), arrays5.append(float(xHe2_next)), arrays6.append(float(T_next)), arrays7.append(float(B_next)), arrays8.append(float(rho_next))
 
 
 
-def X_ism(arrays0, arrays1, arrays2, arrays3, arrays4, arrays5, arrays6, arrays7):
+def X_ism(arrays0, arrays1, arrays2, arrays3, arrays4, arrays5, arrays6, arrays7, arrays8):
     """
     Read in the current parameters from the arrays
     """
@@ -142,7 +151,8 @@ def X_ism(arrays0, arrays1, arrays2, arrays3, arrays4, arrays5, arrays6, arrays7
     x_He2 = arrays5[len(arrays0)-1]
     T = arrays6[len(arrays0)-1]
     B = arrays7[len(arrays0)-1]
-    return [energy, n_H, n_He, x_H, x_He, x_He2, T, B]
+    rho = arrays8[len(arrays0)-1]
+    return [energy, n_H, n_He, x_H, x_He, x_He2, T, B, rho]
 
 
 def Hxsec(energy, nH_neu):
@@ -299,30 +309,30 @@ def eloss_rate(energy, nH_tot, nHe_tot, x_H, x_He, x_He2, B, temperature):
     ic = ld.dE_ic(energy, 0.26)
     return [ion, pla, syn, bre, ic, (ion+pla+syn+bre+ic)]
 
-ene = np.logspace(0, 12, 1E3)
-ion = []
-pl = []
-syn = []
-bre = []
-ic = []
-for i in ene:
-    ion.append(eloss_rate(i, 1, 0, 0.01, 0, 0, 50, 8000)[0])
-    pl.append(eloss_rate(i, 1, 0, 0.01, 0, 0, 50, 8000)[1])
-    syn.append(eloss_rate(i, 1, 0, 0.01, 0, 0, 50, 8000)[2])
-    bre.append(eloss_rate(i, 1, 0, 0.01, 0, 0, 50, 8000)[3])
-    ic.append(eloss_rate(i, 1, 0, 0.01, 0, 0, 50, 8000)[4])
-
-plt.figure()
-plt.plot(np.log10(ene), np.log10(pl), 'b-',lw = 2 ,label = '$\mathrm{Ionization}$')
-plt.plot(np.log10(ene), np.log10(ion), 'g--', lw = 2 ,label = '$\mathrm{Coulomb}$')
-plt.plot(np.log10(ene), np.log10(syn), 'r:',lw = 2 ,label = '$\mathrm{Synchrotron\,(50\mu G)}$')
-plt.plot(np.log10(ene), np.log10(bre), 'm-', lw = 2 ,label = '$\mathrm{Bremsstrahlung\,(total)}$')
-plt.plot(np.log10(ene), np.log10(ic), 'c--', lw = 2 ,label = '$\mathrm{Inverse\,Compton}$')
-plt.ylim([-9, 0])
-plt.xlabel('$\mathrm{energy/eV}$')
-plt.ylabel('$dE/dt\,\mathrm{s/eV}$')
-plt.legend(loc = 'best', fontsize = '10')
-plt.show()
+#ene = np.logspace(0, 12, 1E3)
+#ion = []
+#pl = []
+#syn = []
+#bre = []
+#ic = []
+#for i in ene:
+#    ion.append(eloss_rate(i, 1, 0, 0.01, 0, 0, 50, 8000)[0])
+#    pl.append(eloss_rate(i, 1, 0, 0.01, 0, 0, 50, 8000)[1])
+#    syn.append(eloss_rate(i, 1, 0, 0.01, 0, 0, 50, 8000)[2])
+#    bre.append(eloss_rate(i, 1, 0, 0.01, 0, 0, 50, 8000)[3])
+#    ic.append(eloss_rate(i, 1, 0, 0.01, 0, 0, 50, 8000)[4])
+#
+#plt.figure()
+#plt.plot(np.log10(ene), np.log10(pl), 'b-',lw = 2 ,label = '$\mathrm{Ionization}$')
+#plt.plot(np.log10(ene), np.log10(ion), 'g--', lw = 2 ,label = '$\mathrm{Coulomb}$')
+#plt.plot(np.log10(ene), np.log10(syn), 'r:',lw = 2 ,label = '$\mathrm{Synchrotron\,(50\mu G)}$')
+#plt.plot(np.log10(ene), np.log10(bre), 'm-', lw = 2 ,label = '$\mathrm{Bremsstrahlung\,(total)}$')
+#plt.plot(np.log10(ene), np.log10(ic), 'c--', lw = 2 ,label = '$\mathrm{Inverse\,Compton}$')
+#plt.ylim([-9, 0])
+#plt.xlabel('$\mathrm{energy/eV}$')
+#plt.ylabel('$dE/dt\,\mathrm{s/eV}$')
+#plt.legend(loc = 'best', fontsize = '10')
+#plt.show()
 
 
 

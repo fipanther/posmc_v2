@@ -29,5 +29,21 @@ def rel_bet(energy, mass):
     """
     return np.sqrt(1-(1/(1+((energy)/mass)))**2)
 
+def find_first(array, value):
+    """
+        finds the first instance of a value in an array and returns the index
+        """
+    for i in range(len(array)):
+        if array[i]==value:
+            out = i
+            break
+    return out
 
+def adiabatic_gamma(energy, mass = 511E3):
+    #   Thanks to Yuval Birnboim
+    """
+        Calculates adiabatic index as a function of energy
+    """
+    gamma_out = 1 + (1/3*(rel_bet(energy, mass)**2))/((1 - np.sqrt(1 - rel_bet(energy, mass)**2)))
+    return gamma_out
 
